@@ -162,5 +162,4 @@ def display_screen():
             print("Invalid input!")
 
 
-
 display_screen()
