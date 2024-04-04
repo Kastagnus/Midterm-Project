@@ -4,10 +4,15 @@
 პროგრამა მუშაობს მანამ სანამ მომხმარებელი არ მიმართავს Exit ბრძანებს ღილაკით 9
 
 '''
+import csv
+import os
+from datetime import datetime
+
 
 # წიგნის კლასი ატრიბუტებით: სათაურით, ავტორითა და წიგნის წლით
 class Book:
-    def __init__(self, title, author, year):
+    def __init__(self, book_id, title, author, year):
+        self.id = book_id
         self.title = title
         self.author = author
         self.year = year
@@ -15,41 +20,78 @@ class Book:
     def __str__(self):
         return f"'{self.title}' by {self.author} ({self.year})"
 
-
 # წიგნების მენეჯერ კლასი მეთოდებით 1.წიგნის დამატება 2. წიგნის ძებნა 3. წიგნების სრული სიის გამოტანა
 class BookManager:
 
-    def __init__(self):
-        self.books = []
+    def __init__(self, filename):
+        self.filename = filename
+        if not os.path.exists(self.filename):
+            with open(filename, "w", newline="") as file:
+                writer = csv.writer(file)
+                writer.writerow(["ID", "Title", "Author", "Year"])
 
     def add_book(self, title, author, year):
-        book = Book(title, author, year)
-        self.books.append(book)
+        new_id = self._get_next_id()
+        book = Book(new_id, title, author, year)
+        with open(self.filename, mode="a", newline="") as file:
+            writer = csv.writer(file)
+            writer.writerow([book.id, book.title, book.author, book.year])
         print(f"\nBook added: {book}")
 
     def search_book(self, title):
-        for book in self.books:
-            if book.title == title:
-                print(f"\nBook found: {book}")
-                return True
-        else:
-            print("\nBook not found")
-            return False
+        found = False
+        try:
+            with open(self.filename, 'r', newline='') as file:
+                reader = csv.reader(file)
+                next(reader)
+                for row in reader:
+                    _, book_title, book_author, book_year = row
+                    if title.lower() == book_title.lower():
+                        found_book = Book(*row)
+                        print(f"\nBook found: {found_book}")
+                        found = True
+                        break
+        except FileNotFoundError:
+            print("No books file found.")
+
+        if not found:
+            print("\nBook not found, try again!")
+
 
     def display_books(self):
 
-        if self.books == []:
-            print("No books in library yet! ")
-        i = 1
-        print("All books in library:")
-        for book in self.books:
-            print(f"\n\t{i} - {book}")
-            i += 1
+        try:
+            with open(self.filename, 'r', newline='') as file:
+                reader = csv.reader(file)
+                next(reader)
+                books = list(reader)
+                if not books:
+                    print("Library is empty, Please add books before displaying")
+                    return
+                print("\nBooks in library: \n")
+                for row in books:
+                    print(f"\t{row[0]} - {Book(*row)}")
+        except FileNotFoundError:
+            print("File does not exist !")
+
+    def _get_next_id(self):
+        try:
+            with open(self.filename, 'r', newline='') as file:
+                reader = csv.reader(file)
+                next(reader)
+                data = list(reader)
+                if data:
+                    last_id = int(data[-1][0])
+                    return last_id + 1
+                else:
+                    return 1
+        except FileNotFoundError:
+            return 1
 
 
 # პროგრამის გამშვები
 def run_app():
-    book_manager = BookManager()
+    book_manager = BookManager("library.csv")
     print("Welcome to Book Manager!")
     while True:
         decision = input(
@@ -62,9 +104,9 @@ def run_app():
                 author = input("Enter book author: ")
             year = input("Enter book year: ")
             while True:
-                if year.isdigit() and int(year) < 2024:
+                if year.isdigit() and 1800 <= eval(year) <= datetime.now().year:
                     break
-                print("Invalid input! year has to be an integer and less than 2024")
+                print(f"Invalid input! year has to be an integer and less than {datetime.now().year}")
                 year = input("Enter book year: ")
             book_manager.add_book(title, author, year)
         elif decision == "2":
