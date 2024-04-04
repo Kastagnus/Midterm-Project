@@ -104,7 +104,7 @@ def display_screen():
                     break
 
             while logged_in:
-                print(f"\nDear {customer["name"].capitalize()}, check the operations below...")
+                print(f"\nDear {customer['name'].capitalize()}, check the operations below...")
                 decision = input(
                     "1 - Check Balance\n2 - Make a Deposit\n3 - Withdraw\n9 - Log Out\nChoose the operation (1,2,3, or 9): ")
                 if decision == "1":
@@ -134,7 +134,7 @@ def display_screen():
                             writer = csv.DictWriter(file, fieldnames=fieldnames)
                             writer.writeheader()
                             writer.writerows(updated_account)
-                            print(f"\n{word}!, your current balance is {customer["balance"]} GEL")
+                            print(f"\n{word}!, your current balance is {customer['balance']} GEL")
                     except ValueError:
                         print("\nAmount has to be a number, try again !")
                 elif decision == "9":
